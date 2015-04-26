@@ -1,4 +1,5 @@
 from bge import logic, render
+from mathutils import Vector
 
 import input
 from panel import panel
@@ -14,6 +15,7 @@ class Character(object):
         self.ray_s = controller.sensors['Ray']
         self.motion = controller.actuators['Motion']
         self.velocity = (0.0, 0.0, 0.0)
+        self.global_velocity = (0.0, 0.0, 0.0)
         self.will_jump = False
         input.service.push_mouse_hooks({
             'Robot': lambda : self.robot_action(),
@@ -57,6 +59,7 @@ class Character(object):
             self.velocity = (vector[0] / length * k, vector[1] / length * k, 0.0)
         else:
             self.velocity = (0.0, 0.0, 0.0)
+        self.global_velocity = self.owner.orientation * Vector(self.velocity)
   
     def pool(self, controller):
         self.motion.linV = (self.velocity[0], self.velocity[1], 0.0)
