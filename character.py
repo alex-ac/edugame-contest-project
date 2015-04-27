@@ -9,11 +9,11 @@ import math
 import bge
 
 class Character(object):
-    def __init__(self, controller):
-        self.controller = controller
-        self.owner = controller.owner
-        self.ray_s = controller.sensors['Ray']
-        self.motion = controller.actuators['Motion']
+    def __init__(self):
+        self.controller = None
+        self.owner = None
+        self.ray_s = None
+        self.motion = None
         self.velocity = (0.0, 0.0, 0.0)
         self.global_velocity = (0.0, 0.0, 0.0)
         self.will_jump = False
@@ -27,6 +27,16 @@ class Character(object):
             's': lambda x: self.back(x),
             ' ': lambda x: self.jump(x),
         })
+        self.move_forward = 0
+        self.move_back = 0
+        self.move_left = 0
+        self.move_right = 0
+        
+    def init(self, controller):
+        self.controller = controller
+        self.owner = controller.owner
+        self.ray_s = controller.sensors['Ray']
+        self.motion = controller.actuators['Motion']
         self.restore()
 
     def robot_action(self):
@@ -50,19 +60,19 @@ class Character(object):
         self.move_right = 0
 
     def update_velocity(self):
-        vector = (self.move_right - self.move_left, self.move_forward - self.move_back, 0)
-        length = math.sqrt(math.pow(vector[0], 2) +
-                           math.pow(vector[1], 2) +
-                           math.pow(vector[2], 2))
-        k = 2 if self.ray_s.positive else 1
-        if (length):
-            self.velocity = (vector[0] / length * k, vector[1] / length * k, 0.0)
+        vector = Vector((self.move_right - self.move_left, self.move_forward - self.move_back, 0)).normalized()
+        if self.ray_s.positive:
+            self.velocity = vector * 3
         else:
-            self.velocity = (0.0, 0.0, 0.0)
-        self.global_velocity = self.owner.orientation * Vector(self.velocity)
+            self.velocity = self.velocity
+        self.global_velocity = self.owner.worldLinearVelocity
   
     def pool(self, controller):
-        self.motion.linV = (self.velocity[0], self.velocity[1], 0.0)
+        if not self.controller:
+            return
+        self.motion.linV = (self.velocity[0],
+                            self.velocity[1],
+                            self.owner.worldLinearVelocity.z)
         self.motion.useLocalLinV = True
         self.motion.force = (0.0, 0.0, 10000.0 if self.will_jump else 0.0)
         self.will_jump = False
@@ -85,10 +95,10 @@ class Character(object):
         if self.ray_s.positive and pressed:
             self.will_jump = True
 
-character = Character(logic.getCurrentController())
+character = Character()
 
 def init(controller):
-    pass
+    character.init(controller)
 
 def pool(controller):
     character.pool(controller)

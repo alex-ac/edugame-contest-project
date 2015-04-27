@@ -1,5 +1,7 @@
 import input
 
+import math
+
 from bge import logic
 
 class Panel(object):
@@ -24,14 +26,30 @@ class Panel(object):
     def toggle_x(self):
         print('toggle_x')
         self.reverse_x = not self.reverse_x
-        self.reverse_x_button.applyMovement(
-            (0, 0, -0.5 if self.reverse_x else 0.5), True)
-    
+        if self.reverse_x:
+            self.reverse_x_button.playAction('ReverseXButtonAction', 0, 30,
+                play_mode = logic.KX_ACTION_MODE_PLAY,
+                layer = 0,
+                speed = 5.0)
+        else:
+            self.reverse_x_button.playAction('ReverseXButtonAction', 30, 60,
+                play_mode = logic.KX_ACTION_MODE_PLAY,
+                layer = 1,
+                speed = 5.0)
+
     def toggle_y(self):
         print('toggle_y')
         self.reverse_y = not self.reverse_y
-        self.reverse_y_button.applyMovement(
-            (0, 0, -0.5 if self.reverse_y else 0.5), True)
+        if self.reverse_y:
+            self.reverse_y_button.playAction('ReverseYButtonAction', 0, 30,
+                play_mode = logic.KX_ACTION_MODE_PLAY,
+                layer = 0,
+                speed = 5.0)
+        else:
+            self.reverse_y_button.playAction('ReverseYButtonAction', 30, 60,
+                play_mode = logic.KX_ACTION_MODE_PLAY,
+                layer = 0,
+                speed = 5.0)
     
     def exit(self):
         input.service.pop_mouse_hooks()

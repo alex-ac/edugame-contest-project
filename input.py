@@ -35,6 +35,7 @@ class Input(object):
         target = camera.getScreenRay(x, y, self.raycast_distance)
         if target == None or len(self.mouse_hooks) == 0:
             return
+        print(target)
         for name in self.mouse_hooks[-1]:
             if name == target.name:
                 self.mouse_hooks[-1][name]()

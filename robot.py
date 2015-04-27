@@ -1,30 +1,72 @@
 import math
 
+from mathutils import Vector
+
 from panel import panel
 from character import character
+
+from bge import logic
+
+import math
+
+def vector_length(vector):
+    return math.sqrt(math.pow(vector.x, 2) +
+              math.pow(vector.y, 2) +
+              math.pow(vector.z, 2))
 
 class Robot(object):
     def __init__(self, controller):
         self.controller = controller
         self.owner = controller.owner
         self.motion = controller.actuators['Motion']
+        scene = logic.getCurrentScene()
+        self.arm = scene.objects['RobotArmature']
+        self.state = 0
+        self.owner['Robot'] = True
     
     def act(self):
-        velocity = list(character.global_velocity[:])
+        if not character:
+            return;
+        velocity = Vector(character.global_velocity[:])
+        
+        will_move = character.move_forward or character.move_back or \
+            character.move_left or character.move_right
+        frame = self.arm.getActionFrame()
+        if self.state == 0 and will_move:
+            self.arm.stopAction()
+            self.arm.playAction('ArmatureAction', 0, 30,
+                play_mode = logic.KX_ACTION_MODE_PLAY,
+                speed = 2.0)
+            self.state = 1
+        if self.state == 1 and will_move and frame == 30:
+            self.arm.stopAction()
+            self.arm.playAction('ArmatureAction', 30, 90,
+                play_mode = logic.KX_ACTION_MODE_LOOP,
+                speed = 2.0)
+            self.state = 2
+        if self.state in (1, 2) and not will_move:
+            self.arm.playAction('ArmatureAction', 90, 120,
+                play_mode = logic.KX_ACTION_MODE_PLAY,
+                speed = 2.0)
+            self.state = 3
+        if (self.state == 0 and frame < 120) or (self.state == 3 and frame == 120):
+            self.arm.stopAction()
+            self.arm.playAction('ArmatureAction', 120, 250,
+                play_mode = logic.KX_ACTION_MODE_LOOP,
+                speed = 2.0)
+            self.state = 0 
+           
         if panel.reverse_x:
             velocity[0] *= -1
         if panel.reverse_y:
             velocity[1] *= -1
-        self.motion.linV = velocity[:]
+
+        self.motion.linV = velocity[0], velocity[1], self.owner.worldLinearVelocity.z
         self.motion.useLocalLinV = False
-        length = math.sqrt(math.pow(velocity[0], 2) +
-                           math.pow(velocity[1], 2) +
-                           math.pow(velocity[2], 2))
-        if length:
-            direction = (velocity[0]/length,
-                         velocity[1]/length,
-                         velocity[2]/length)
+        direction = Vector((velocity[0], velocity[1], 0.0)).normalized()
+        if direction.x + direction.y + direction.z:
             self.owner.alignAxisToVect(direction, 1)
+            self.owner.alignAxisToVect((0, 0, 1), 2)
         self.controller.activate(self.motion)
     instance = None
      
