@@ -27,6 +27,11 @@ class Character(object):
             's': lambda x: self.back(x),
             ' ': lambda x: self.jump(x),
         })
+        self.move_forward = 0
+        self.move_back = 0
+        self.move_left = 0
+        self.move_right = 0
+
     def init(self, controller):
         self.controller = controller
         self.owner = controller.owner
@@ -64,7 +69,7 @@ class Character(object):
 
     def pool(self, controller):
         if not self.controller:
-            return
+            self.init(controller)
         self.motion.linV = (self.velocity[0],
                             self.velocity[1],
                             self.owner.worldLinearVelocity.z)
@@ -91,9 +96,6 @@ class Character(object):
             self.will_jump = True
 
 character = Character()
-
-def init(controller):
-    character.init(controller)
 
 def pool(controller):
     character.pool(controller)

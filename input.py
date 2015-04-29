@@ -3,26 +3,24 @@ from bge import render, logic, events
 import math
 
 class Input(object):
-    def __init__(self, controller):
-        self.controller = controller
-
-        self.mouse_click_s = self.controller.sensors['MouseClick']
-        self.mouse_move_s = self.controller.sensors['MouseMove']
-        self.keyboard_s = self.controller.sensors['Keyboard']
-        self.joystick_s = self.controller.sensors['Joystick']
+    def __init__(self):
+        self.mouse_click_s = None
+        self.mouse_move_s = None
+        self.keyboard_s = None
+        self.joystick_s = None
 
         self.lock_mouse = None
         self.mouse_sensitivity = 0.001
         self.raycast_distance = 1000.0
         render.showMouse(True)
-        self.joystick_threshold = 1024
-        self.joystick_s.threshold = self.joystick_threshold
 
         self.keyboard_hooks = []
         self.mouse_hooks = []
         self.joystick_hooks = []
 
-    def mouse_click(self):
+    def mouse_click(self, controller):
+        if not self.mouse_click_s:
+            self.mouse_click_s = controller.sensors['MouseClick']
         if self.mouse_click_s.getButtonStatus(events.LEFTMOUSE) != \
             logic.KX_INPUT_JUST_RELEASED:
             return
@@ -40,7 +38,9 @@ class Input(object):
                 self.mouse_hooks[-1][name]()
                 break
 
-    def mouse_move(self):
+    def mouse_move(self, controller):
+        if not self.mouse_move_s:
+            self.mouse_move_s = controller.sensors['MouseMove']
         width, height = render.getWindowWidth(), render.getWindowHeight()
         x = (width / 2 - self.mouse_move_s.position[0]) * self.mouse_sensitivity
         y = (height / 2 - self.mouse_move_s.position[1]) * self.mouse_sensitivity
@@ -59,7 +59,9 @@ class Input(object):
 
             render.setMousePosition(int(width / 2), int(height / 2))
 
-    def keyboard(self):
+    def keyboard(self, controller):
+        if not self.keyboard_s:
+            self.keyboard_s = controller.sensors['Keyboard']
         if not len(self.keyboard_hooks):
             return
         shift = self.keyboard_s.getKeyStatus(events.LEFTSHIFTKEY) == logic.KX_INPUT_ACTIVE or \
@@ -110,19 +112,16 @@ class Input(object):
     def pop_joystick_hooks(self):
         self.joystick_hooks.pop()
 
-service = Input(logic.getCurrentController())
-
-def init(controller):
-    pass
+service = Input()
 
 def mouse_click(controller):
-    service.mouse_click()
+    service.mouse_click(controller)
 
 def mouse_move(controller):
-    service.mouse_move()
+    service.mouse_move(controller)
 
 def keyboard(controller):
-    service.keyboard()
+    service.keyboard(controller)
 
 def joystick(controller):
     #service.joystick()
