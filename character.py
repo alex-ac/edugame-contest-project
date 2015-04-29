@@ -27,11 +27,6 @@ class Character(object):
             's': lambda x: self.back(x),
             ' ': lambda x: self.jump(x),
         })
-        self.move_forward = 0
-        self.move_back = 0
-        self.move_left = 0
-        self.move_right = 0
-        
     def init(self, controller):
         self.controller = controller
         self.owner = controller.owner
@@ -48,7 +43,7 @@ class Character(object):
         self.move_left = 0
         self.move_right = 0
         panel.enable()
-    
+
     def restore(self):
         scene = logic.getCurrentScene()
         scene.active_camera = scene.objects['CharacterCamera']
@@ -66,7 +61,7 @@ class Character(object):
         else:
             self.velocity = self.velocity
         self.global_velocity = self.owner.worldLinearVelocity
-  
+
     def pool(self, controller):
         if not self.controller:
             return
@@ -78,7 +73,7 @@ class Character(object):
         self.will_jump = False
         self.motion.useLocalForce = True
         controller.activate(self.motion)
-    
+
     def forward(self, pressed):
         self.move_forward = int(pressed)
         self.update_velocity()
@@ -102,3 +97,4 @@ def init(controller):
 
 def pool(controller):
     character.pool(controller)
+

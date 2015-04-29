@@ -13,7 +13,7 @@ class Panel(object):
         self.restore = None
         self.reverse_x = False
         self.reverse_y = False
-        
+
     def enable(self):
         self.scene.active_camera = self.camera
         input.service.push_mouse_hooks({
@@ -22,9 +22,8 @@ class Panel(object):
             'CommandPanelExitButton': lambda : self.exit(),
         })
         input.service.push_keyboard_hooks({})
-        
+
     def toggle_x(self):
-        print('toggle_x')
         self.reverse_x = not self.reverse_x
         if self.reverse_x:
             self.reverse_x_button.playAction('ReverseXButtonAction', 0, 30,
@@ -38,7 +37,6 @@ class Panel(object):
                 speed = 5.0)
 
     def toggle_y(self):
-        print('toggle_y')
         self.reverse_y = not self.reverse_y
         if self.reverse_y:
             self.reverse_y_button.playAction('ReverseYButtonAction', 0, 30,
@@ -50,10 +48,11 @@ class Panel(object):
                 play_mode = logic.KX_ACTION_MODE_PLAY,
                 layer = 0,
                 speed = 5.0)
-    
+
     def exit(self):
         input.service.pop_mouse_hooks()
         input.service.pop_keyboard_hooks()
         self.restore()
 
 panel = Panel()
+

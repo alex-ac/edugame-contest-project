@@ -7,12 +7,8 @@ from character import character
 
 from bge import logic
 
-import math
-
-def vector_length(vector):
-    return math.sqrt(math.pow(vector.x, 2) +
-              math.pow(vector.y, 2) +
-              math.pow(vector.z, 2))
+def vector_length(v):
+    return math.sqrt(math.pow(v.x, 2) + math.pow(v.y, 2) + math.pow(v.z, 2))
 
 class Robot(object):
     def __init__(self, controller):
@@ -23,15 +19,16 @@ class Robot(object):
         self.arm = scene.objects['RobotArmature']
         self.state = 0
         self.owner['Robot'] = True
-    
+        self.front = scene.objects['RobotFront']
+
     def act(self):
         if not character:
             return;
-        velocity = Vector(character.global_velocity[:])
-        
+
         will_move = character.move_forward or character.move_back or \
             character.move_left or character.move_right
         frame = self.arm.getActionFrame()
+
         if self.state == 0 and will_move:
             self.arm.stopAction()
             self.arm.playAction('ArmatureAction', 0, 30,
@@ -45,6 +42,7 @@ class Robot(object):
                 speed = 2.0)
             self.state = 2
         if self.state in (1, 2) and not will_move:
+            self.arm.stopAction()
             self.arm.playAction('ArmatureAction', 90, 120,
                 play_mode = logic.KX_ACTION_MODE_PLAY,
                 speed = 2.0)
@@ -54,8 +52,9 @@ class Robot(object):
             self.arm.playAction('ArmatureAction', 120, 250,
                 play_mode = logic.KX_ACTION_MODE_LOOP,
                 speed = 2.0)
-            self.state = 0 
-           
+            self.state = 0
+
+        velocity = list(character.global_velocity[:])
         if panel.reverse_x:
             velocity[0] *= -1
         if panel.reverse_y:
@@ -64,14 +63,13 @@ class Robot(object):
         self.motion.linV = velocity[0], velocity[1], self.owner.worldLinearVelocity.z
         self.motion.useLocalLinV = False
         direction = Vector((velocity[0], velocity[1], 0.0)).normalized()
-        if direction.x + direction.y + direction.z:
-            self.owner.alignAxisToVect(direction, 1)
-            self.owner.alignAxisToVect((0, 0, 1), 2)
+        if vector_length(direction):
+            self.front.worldPosition = self.owner.worldPosition + direction 
         self.controller.activate(self.motion)
     instance = None
-     
+
 def act(controller):
     if not Robot.instance:
         Robot.instance = Robot(controller)
-    
+
     Robot.instance.act()
